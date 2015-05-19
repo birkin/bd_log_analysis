@@ -3,7 +3,7 @@
 """ Compares new borrowdirect api results against current in-production deprecated code.
     Parses logging added to controller that summarizes differences between new and old tunneler calls. """
 
-import glob, os, pprint
+import glob, json, os, pprint
 
 
 class Analyzer( object ):
@@ -30,6 +30,7 @@ class Analyzer( object ):
             with open( filepath ) as f:
                 lines_utf8 = f.readlines()
                 self.parse_log_file( lines_utf8 )
+            # break
         return
 
     ## helpers
@@ -38,7 +39,8 @@ class Analyzer( object ):
         """ Parses given lines to update counts.
             Called by process_log_files() """
         relevant_segments = self.find_relevant_segments( lines_utf8 )
-        pprint.pprint( relevant_segments )
+        cleaned_lines = self.clean_relevant_segments( relevant_segments )
+        self.run_counts( cleaned_lines )
         return
 
     def find_relevant_segments( self, lines_utf8 ):
@@ -56,7 +58,50 @@ class Analyzer( object ):
                 segment = []
         return segments
 
+    def clean_relevant_segments( self, relevant_segments ):
+        """ Turns each messy line into a json string; json isn't used, it's to normalize the strings.
+            Called by parse_log_file() """
+        cleaned_lines = []
+        for line in relevant_segments:
+            start = line.find( u'`' ) + 1
+            end = line.rfind( u'`' )
+            str1 = line[start:end]
+            str2 = self.run_replaces( str1 )
+            dct = json.loads( str2  )
+            jsn = json.dumps( dct, sort_keys=True )
+            cleaned_lines.append( jsn )
+        return cleaned_lines
 
+    def run_replaces( self, str1 ):
+        """ Runs a series of replaces to normalize string.
+            Called by clean_relevant_segments() """
+        str2 = str1.replace( u'\n', u'' )
+        str3 = str2.replace( u"'", u'"' )
+        str4 = str3.replace( u'u"', u'"' )
+        str5 = str4.replace( u'True', u'true' )
+        str6 = str5.replace( u'False', u'false' )
+        str7 = str6.replace( u'None', u'null' )
+        return str7
+
+
+
+    # def clean_relevant_segments( self, relevant_segments ):
+    #     """ Turns each line into a dct.
+    #         Called by parse_log_file() """
+    #     cleaned_lines = []
+    #     for line in relevant_segments:
+    #         start = line.find( u'`' ) + 1
+    #         end = line.rfind( u'`' )
+    #         str1 = line[start:end]
+    #         str2 = str1.replace( u'\n', u'' )
+    #         str3 = str2.replace( u"'", u'"' )
+    #         str4 = str3.replace( u'u"', u'"' )
+    #         str5 = str4.replace( u'True', u'true' )
+    #         str6 = str5.replace( u'False', u'false' )
+    #         str7 = str6.replace( u'None', u'null' )
+    #         dct = json.loads( str7  )
+    #         cleaned_lines.append( dct )
+    #     return cleaned_lines
 
 
 
