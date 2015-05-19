@@ -69,7 +69,7 @@ class Analyzer( object ):
             str2 = self.run_replaces( str1 )
             dct = json.loads( str2  )
             jsn = json.dumps( dct, sort_keys=True )
-            cleaned_lines.append( jsn )
+            cleaned_lines.append( jsn.decode(u'utf-8') )
         return cleaned_lines
 
     def run_replaces( self, str1 ):
@@ -83,25 +83,19 @@ class Analyzer( object ):
         str7 = str6.replace( u'None', u'null' )
         return str7
 
-
-
-    # def clean_relevant_segments( self, relevant_segments ):
-    #     """ Turns each line into a dct.
-    #         Called by parse_log_file() """
-    #     cleaned_lines = []
-    #     for line in relevant_segments:
-    #         start = line.find( u'`' ) + 1
-    #         end = line.rfind( u'`' )
-    #         str1 = line[start:end]
-    #         str2 = str1.replace( u'\n', u'' )
-    #         str3 = str2.replace( u"'", u'"' )
-    #         str4 = str3.replace( u'u"', u'"' )
-    #         str5 = str4.replace( u'True', u'true' )
-    #         str6 = str5.replace( u'False', u'false' )
-    #         str7 = str6.replace( u'None', u'null' )
-    #         dct = json.loads( str7  )
-    #         cleaned_lines.append( dct )
-    #     return cleaned_lines
+    def run_counts( self, cleaned_lines ):
+        """ Checks and updates patterns, and counts.
+            Called by parse_log_file() """
+        if u'total_entries' in self.summary.keys():
+            self.summary[u'total_entries'] += len(cleaned_lines)
+        else:
+            self.summary[u'total_entries'] = len(cleaned_lines)
+        for pattern in cleaned_lines:
+            if pattern in self.summary.keys():
+                self.summary[pattern] += 1
+            else:
+                self.summary[pattern] = 0
+        return
 
 
 
@@ -113,4 +107,4 @@ if __name__ == u'__main__':
     anlyzr.prep_filepaths_list()
     # pprint.pprint( anlyzr.filepaths_list )
     anlyzr.process_log_files()
-    print anlyzr.summary
+    pprint.pprint( anlyzr.summary )
