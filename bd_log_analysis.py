@@ -11,6 +11,7 @@ class Analyzer( object ):
     def __init__( self ):
         self.LOGS_DIR = unicode( os.environ[u'BDLOG_ANALYSIS__LOGS_DIR'] )
         self.filepaths_list = []
+        self.labels = [ u'new_api_found', u'new_api_requestable', u'old_api_found', u'old_api_requestable' ]
         self.summary = {}
 
     def prep_filepaths_list( self ):
@@ -27,15 +28,36 @@ class Analyzer( object ):
             Called by if __name__ """
         for filepath in self.filepaths_list:
             with open( filepath ) as f:
-                txt_utf8 = f.read()
-                txt = txt_utf8.decode( u'utf-8' )
-
-    def parse_log_file( self ):
-        """
-
-
+                lines_utf8 = f.readlines()
+                self.parse_log_file( lines_utf8 )
+        return
 
     ## helpers
+
+    def parse_log_file( self, lines_utf8 ):
+        """ Parses given lines to update counts.
+            Called by process_log_files() """
+        relevant_segments = self.find_relevant_segments( lines_utf8 )
+        pprint.pprint( relevant_segments )
+        return
+
+    def find_relevant_segments( self, lines_utf8 ):
+        """ Finds comparison lines and merges them into single string.
+            Called by parse_log_file() """
+        ( segments, segment ) = ( [], [] )
+        for line_utf8 in lines_utf8:
+            line = line_utf8.decode( u'utf-8' )
+            for label in self.labels:
+                if label in line:
+                    segment.append( line )
+            if len( segment ) == 4:
+                joined_segment = u''.join( segment )
+                segments.append( joined_segment )
+                segment = []
+        return segments
+
+
+
 
 
 
