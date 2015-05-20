@@ -40,7 +40,7 @@ class Analyzer( object ):
             Called by process_log_files() """
         relevant_segments = self.find_relevant_segments( lines_utf8 )
         cleaned_lines = self.clean_relevant_segments( relevant_segments )
-        self.run_counts( cleaned_lines )
+        self.update_counts( cleaned_lines )
         return
 
     def find_relevant_segments( self, lines_utf8 ):
@@ -83,7 +83,7 @@ class Analyzer( object ):
         str7 = str6.replace( u'None', u'null' )
         return str7
 
-    def run_counts( self, cleaned_lines ):
+    def update_counts( self, cleaned_lines ):
         """ Checks and updates patterns, and counts.
             Called by parse_log_file() """
         if u'total_entries' in self.summary.keys():
